@@ -1,0 +1,84 @@
+import ipywidgets as widgets
+from IPython.display import display
+from datetime import datetime
+
+
+# Chatbot logic
+def chatbot_response(user_input):
+    user_input = user_input.lower()
+
+    if any(word in user_input for word in ["hello", "hi", "hey"]):
+        return "Hello! 👋 How can I help you today?"
+
+    elif "how are you" in user_input:
+        return "I'm doing great! Thanks for asking 😊"
+
+    elif "your name" in user_input or "who are you" in user_input:
+        return "I'm a rule-based chatbot built using Python."
+
+    elif "time" in user_input:
+        return f"The current time is {datetime.now().strftime('%H:%M:%S')} ⏰"
+
+    elif "date" in user_input:
+        return f"Today's date is {datetime.now().strftime('%d-%m-%Y')} 📅"
+
+    elif "joke" in user_input:
+        return "Why do programmers prefer dark mode? Because light attracts bugs 😄"
+
+    elif "weather" in user_input:
+        return "I can't access live weather, but I hope it's nice where you are ☀️"
+
+    elif "thank" in user_input:
+        return "You're welcome! Happy to help 😊"
+
+    elif "help" in user_input:
+        return "You can say: hello, time, date, joke, weather, your name, bye"
+
+    elif "bye" in user_input or "exit" in user_input:
+        return "Goodbye! 👋 Have a great day!"
+
+    else:
+        return "Sorry, I didn't understand that. Try: hello, joke, time, help."
+
+
+def main():
+    # UI Elements
+    chat_history = widgets.Textarea(
+        value="🤖 Chatbot Ready!\n\n",
+        placeholder="Chat history...",
+        description="Chat:",
+        layout=widgets.Layout(width='100%', height='300px')
+    )
+
+    user_input_box = widgets.Text(
+        placeholder="Type your message here...",
+        description="You:",
+        layout=widgets.Layout(width='100%')
+    )
+
+    send_button = widgets.Button(
+        description="Send",
+        button_style='success'
+    )
+
+    # Button click function
+    def on_send_clicked(b):
+        user_text = user_input_box.value
+        if user_text.strip() == "":
+            return
+
+        bot_reply = chatbot_response(user_text)
+        chat_history.value += f"You: {user_text}\nBot: {bot_reply}\n\n"
+        user_input_box.value = ""
+
+        if "bye" in user_text.lower() or "exit" in user_text.lower():
+            send_button.disabled = True
+            user_input_box.disabled = True
+
+    send_button.on_click(on_send_clicked)
+
+    display(chat_history, user_input_box, send_button)
+
+
+if __name__ == "__main__":
+    main()
