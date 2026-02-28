@@ -1,0 +1,128 @@
+import ipywidgets as widgets
+from IPython.display import display
+
+# Game state
+board = [""] * 9
+buttons = []
+
+# Check winner
+def check_winner(b):
+    wins = [
+        (0,1,2), (3,4,5), (6,7,8),
+        (0,3,6), (1,4,7), (2,5,8),
+        (0,4,8), (2,4,6)
+    ]
+    for x, y, z in wins:
+        if b[x] == b[y] == b[z] and b[x] != "":
+            return b[x]
+    if "" not in b:
+        return "Draw"
+    return None
+
+# Minimax AI
+def minimax(b, is_maximizing):
+    result = check_winner(b)
+    if result == "O":
+        return 1
+    elif result == "X":
+        return -1
+    elif result == "Draw":
+        return 0
+
+    if is_maximizing:
+        best = -1000
+        for i in range(9):
+            if b[i] == "":
+                b[i] = "O"
+                score = minimax(b, False)
+                b[i] = ""
+                best = max(score, best)
+        return best
+    else:
+        best = 1000
+        for i in range(9):
+            if b[i] == "":
+                b[i] = "X"
+                score = minimax(b, True)
+                b[i] = ""
+                best = min(score, best)
+        return best
+
+def best_move():
+    best_score = -1000
+    move = -1
+    for i in range(9):
+        if board[i] == "":
+            board[i] = "O"
+            score = minimax(board, False)
+            board[i] = ""
+            if score > best_score:
+                best_score = score
+                move = i
+    return move
+
+# Button click
+def on_click(i):
+    if board[i] != "":
+        return
+
+    board[i] = "X"
+    buttons[i].description = "X"
+
+    winner = check_winner(board)
+    if winner:
+        show_result(winner)
+        return
+
+    ai = best_move()
+    if ai != -1:
+        board[ai] = "O"
+        buttons[ai].description = "O"
+
+    winner = check_winner(board)
+    if winner:
+        show_result(winner)
+
+# Show result
+def show_result(result):
+    if result == "Draw":
+        result_label.value = "😐 It's a Draw!"
+    else:
+        result_label.value = f"🏆 Winner: {result}"
+    for btn in buttons:
+        btn.disabled = True
+
+# ✅ FIXED Reset game
+def reset_game(b=None):
+    # Clear the existing board list (don't replace it)
+    for i in range(9):
+        board[i] = ""
+
+    # Clear UI buttons
+    for btn in buttons:
+        btn.description = ""
+        btn.disabled = True
+
+    result_label.value = "Your Turn: X"
+
+# UI
+result_label = widgets.Label(value="Your Turn: X")
+
+buttons = []
+for i in range(9):
+    btn = widgets.Button(description="", layout=widgets.Layout(width="80px", height="80px"))
+    btn.on_click(lambda b, i=i: on_click(i))
+    buttons.append(btn)
+
+grid = widgets.GridBox(
+    children=buttons,
+    layout=widgets.Layout(
+        grid_template_columns="repeat(3, 80px)",
+        grid_gap="5px"
+    )
+)
+
+reset_btn = widgets.Button(description="🔄 Restart Game", button_style="warning")
+reset_btn.on_click(reset_game)
+
+display(result_label, grid, reset_btn)
